@@ -135,6 +135,7 @@
             <h2 style="color:#FFD700;">Zuweisungen</h2>
             <div id="assignments"></div>
             <button id="download-btn">PDF herunterladen</button>
+                        <button id="board-btn">Ansicht anzeigen</button>
         </div>
     </div>
 
@@ -280,6 +281,8 @@
             // Store result globally for PDF
             window.currentAssignments = result;
             window.currentMonth = monthInput;
+                    localStorage.setItem('currentAssignments', JSON.stringify(result));
+        localStorage.setItem('currentMonth', monthInput);
         }
 
         function downloadPDF() {
@@ -306,6 +309,9 @@
         });
         document.getElementById('start-btn').addEventListener('click', assignTasks);
         document.getElementById('download-btn').addEventListener('click', downloadPDF);
+            document.getElementById('board-btn').addEventListener('click', () => {
+        window.open('board.html', '_blank');
+    });
     </script>
 </body>
 </html>
