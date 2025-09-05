@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ämtchen Board</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            color: #333;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: #555;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .cell {
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .cell img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        .cell .task {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .cell .name {
+            color: #777;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 1rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="board-month"></h1>
+    <h2>Ämtchen</h2>
+    <div id="assignment-grid" class="grid"></div>
+    <div class="footer">Schnyder Werbung</div>
+    <script>
+      const iconMap = {
+          "Küche Ordnung": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAACYUlEQVR4nO2d23LDIAwF7U7//5fdhw6dONPEF3RZKWffkwjWAgwjsm7btggOX9kBiD0SAkNCYEgIDAmBISEwJASGhMCQEBgSAkNCYEgIDAmBISEwvrMDuMO6rqfPDLZtWz1jsWaln4dc6fyzkCVhhXiIeIYoBiUkQsIs3hIRc0gFEVGkr7IkY09ahsyIuDJsVBOeIuRqJ82M28+fpQsKF5L9DjG+kyomdJV1phMylqKkuMImdVKj7/xuVEaFZMhRY0gvaNmxumdIdgOt8c4UVyHdZAw8pbgJ6Spj4CXFRUh3GQMPKeFbJ11keGEu5N1T01GGdZaYCuks4138llLSd3vFHjMhnbNjEJEl7hnSRcag/Ju6uIaJEOpWdjQW/eCaId2Gq4Fnu6aFKDv2zPaHW4Z0zY6BV/s0qcOQEBgSAmNKyKsJrPv8MXjVzpmJXRkCQ0JgSAgMCYEhITAkBIaEwJAQGBICQ0JgTAnx2DqohMfWkTIEhoTAkBAYaeUI1cGWI3zK2cdZZvsjtYKqKvgKKmXJLxb9oEkdRnoVbjXKVOFGFbRkElFyoSELhqmQzlkSVZBkniGdpfyH9QozfMjqKMUSFyFHT00XKR7vX2nlCNWllCxH6CoFXUF1RDcp3ttEYVf8kW+UWxZOfGGrLNI1end+N+phCb9qPPtW0jtxeMfySMrd75mdcTcLWwtZlno3W7cX8hdAkVXWxwhZFpaU7NNPhJBBpphsEQOUkEf0DztQ9B9UBaC8y3hQUkhndKYOQ0JgSAgMCYEhITAkBIaEwJAQGBICQ0JgSAgMCYEhITB+AEYwSqSN4KxTAAAAAElFTkSuQmCC",
+          "Recycling Dosen": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABW0lEQVR4nO3dUWoCQRRFwXRw/1vufAVUCBESnHrNqQ2McLw4YwuuvfdHHJ9Xv4A8KgimIJiCYAqCKQimIJiCYAqCKQimIJiCYAqCKQimIJiCYAqCKQimIJiCYAqCKQjmdtWF11r874/23uvd12whmIJgCoIpCKYgmIJgCoK57DnkJ1fc+0vPRC0EUxBMQTAFwRQEUxBMQTAFwRwTRHq4+4tjgpziiCDf6zhhJUcEOcn4IM+rmL6S8UFOMzrI/Rruv7afvJLRQU40Nshvnx1TVzI2yKlGBnn13T9xJdyZ+iuuOHd/l5ELOVlBMAXBFARTEExBMAXBFARTEExBMAXBFARTEExBMAXBFARTEExBMNwR7sRz8P/UQjAFwRQEUxBMQTAFwRQEUxDM6u+7LS0EUxBMQTAFwRQEUxBMQTAFwRQEUxBMQTAFwRQEUxBMQTAFwRQEUxBMQTAFwXwBXB4h3x7zNYAAAAAASUVORK5CYII=",
+          "Recycling PET": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABPElEQVR4nO3cUQqDMBQAwab0/ldOf6tflipO6M4JAsuDRwyOOecjjufdB8hWQTAFwRQEUxBMQTAFwRQEUxDM6+4DHDXG+PlKYc45zjjLlZoQTEEwBcEUBFMQTEEwY8UPVN+swCusup+aEExBMAXBFARTEExBMAXBFARTEExBMAXBFATDXy6e8S19T75wbEIwBcEUBFMQTEEwy7xc3DuyKV2xoV2tCcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwyz62XvEh9RFNCKYgmIJgCoIpCIb/ccC/aUIwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQTEEwBcEUBFMQzBtVQh3BpPUMsgAAAABJRU5ErkJggg==",
+          "Karton": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABp0lEQVR4nO3cUU7CQBRA0da4/y2PH8YEoiIizJziPQsgJbcPJqSPfYyxxfGy+gJyriCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmBeV1/AT/Z95x8+HmPs93otdkKOEOIRdvHp9yPH+Ou0cBNy5Bj3QAX57zG2DQpSjHfEKetSjHueYG4182ZZPiHFOLc0SDE+WxbkyDEeeX1LghTje9ODFOOy6aesMcb+3ZuWj76zbpYlH1nCJPzGzOtdfuzVzb55CnLBikkuCKYgGOK3rFMrPiak010TgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgtzgkc9xcQ/K6b6K8S/+WkM0Y6+lIFeatVlVkCvMXHPjvkOkB5+3bf7OYRNywYoF0ILc4On21I/s6fbUj2zGMlFBrjRrs4v8iz/B6Rd6e+qAjwizdx6bEEwTgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmAKgikIpiCYgmDeANlnhcdzjr7IAAAAAElFTkSuQmCC",
+          "Chef de Frigor": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABRklEQVR4nO3bQQrCMBBAUSPe/8px46JCBRfF/OB7F7DwGZy26Zhz3ui4r74A3gkSI0iMIDGCxAgSI0iMIDGCxAgSI0iMIDGCxAgS81h9AUdjjGXvAuacY9VvH5mQGEFiBIkRJEaQmNSW9cmVG9DKTe4bJiRGkBhBYgSJESRGkBhBYgSJ2eLG8BfObhhXPJI3ITGCxAgSI0iMIDGCxAgSI0iMIDGCxAgSI0iMIDGCxAgS433Ii88ROLXFhNSPf17JhMQIEiNIjCAxgsRssWX5YIdlBIkRJEaQGEFittiyfsHpd04JEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIjPchL06/c0qQGEFitvgPqZ82vJIJiREkRpAYQWIEiRlz/s0CswUTEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEvMEK7Ai05LciqoAAAAASUVORK5CYII=",
+          "Pausenraum putzen": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABn0lEQVR4nO3d0WrDMBAF0avS//9l9UmghCZx65CdNXPeTYTGKwcCzphzRhxf1QvQLYPAGATGIDAGgTEIjEFgDAJjEBiDwBgExiAwBoExCMx39QLOGmP8+vvBnHN8ei3v4ITAGATGIDAGgTEIjEFgDAJjEBiDwBgExiAwBoExCIxBYAwCYxAYg8AYBMYgMAaBMQiMQWAMAmMQGIPAGATGIDAGgTEIjEFgDAJjEBiDwBgExiAwBoExCIxBYAwCYxAYg8AYBMYgMAaBMQiMQWAMAmMQGIPAGATGIDAGgTEIjEFgRtW/tD16vStJxatmyyaE/l7dqvWVTcjNIkDTUn2jIJ4h1ZuwENaBCJLUb0b15y+II+veJ48wSogFGSQ5FuXZZp69vgo2SHJ8UvaN/c81JOggy9G7vetU7FoESd7zXKHHSEDfsl45u5kdYiSNJmT3l2npEmJpMyG7o5vcLUbSNEjyerM7xkiaHln39iOsa4il7YTsVoTuMZKLTMiVXGJCrsQgMAaBMQiMQWAMAmMQGIPAGATGIDAGgTEIjEFgfgD72H+DM+cboQAAAABJRU5ErkJggg==",
+          "Getränke auffüllen": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAABb0lEQVR4nO3dwWrCQBRA0Uzp//9yuipYKzGUMu8uztmL4mUy86LiOs/zoONj+gXwkyAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIjCAxgsQIEiNIzOfUE6+1xn7+e57nmnrud6yQGEFiBIkRJEaQGEFixo69Jc9H8MljcS7If74Zf511vh83EcYl68LE8CrIG7ujCHLDziiC3LQrSm5Tn/C4eU/e9DwOK+SXq5PVjliCvDA5hwgSI0iMIDGCxAjywuTRV5AnVzF2nL4Mhsf8MPjICrlp12wiyA07B0VB3tg9tQtyYeIWSm5TL2ywPlMfVvqur0tWjCAxgsQIErP8bV6LFRIjSIwgMYLECBIjSIwgMYLECBIjSIwgMYLECBIjSIwgMYLECBIjSIwgMYLECBIjSIwgMYLECBIjSIwgMYLEfAEj8T7PRLc3pgAAAABJRU5ErkJggg==",
+          "FREI": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAACcElEQVR4nO2cy3LDIBAEIZX//2VySDmRVXogpIUePH2My0C2mcWylORSSjIcvkYvwLxjITAsBIaFwLAQGBYCw0JgWAgMC4FhITAsBIaFwLAQGBYCw0JgWAgMC4FhITAsBIaFwLAQGNMIyTlP8fjMNEJmYQohr3TMkJIphMyEvJB1KtRTIi9kNqSFqKdhC2kheyiLkhWiXPQjZIXMyrRCVBMkKUS12DVICqlFUZycEMUiX0FOyOxICWlJh1qipIR8AjJCjnZ6KSWXUnLLe2nICPkUcuQ/Dnh6Z75SsBx3nYyt16LWEUFoQqIWftaizl6/O3fEuC9CE/I20QO7tLUYI+e+SrczpNcvFEHPtXc91BWl9F5zt5b1NmlFCwnv1YA1bDFEyN/kJ0WJKsioeWsYKiSlvjuVmoolwy8MawrwxKckBRkpAYSkdF6IJwrVY44nGN6y1qx38tOFih7/LoiELOlZIJqMlIBCUvovVETBIsd+gu/RCzhi6yC+Wkilr95TgiakRxGpopBC9mhpM9TWtIeUkE9AWshe26G2oxpwQmqKmXMue3/Gtvz52VhEcTghe7Tejs05F6VzBH+lXkspJbe8lyZLJiFnENtPC6iE3EnHnTFIKZFPyLqYpOK2gP7q5Iizx4BS0mxjcgm58syVYlowZ0j0fW7yffQlEgl56o4hpehHoIVEFJEuBXmoRxeNfOgjEnL0NHskd69fIsAkZFQroaUF8ynL/IJoWeYfC4FhITAsBIaFwLAQGBYCw0JgWAgMC4FhITAsBIaFwLAQGBYCw0JgWAgMC4FhITAsBIaFwLAQGBYCw0JgWAgMC4HxAyYzKaSc+XPMAAAAAElFTkSuQmCC"
+      };
+      const assignments = JSON.parse(localStorage.getItem('currentAssignments') || '[]');
+      const month = localStorage.getItem('currentMonth') || '';
+      document.getElementById('board-month').innerText = month;
+      const grid = document.getElementById('assignment-grid');
+      assignments.forEach(item => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const img = document.createElement('img');
+        img.src = iconMap[item.task] || '';
+        img.alt = item.task;
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task';
+        taskDiv.innerText = item.task;
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'name';
+        nameDiv.innerText = item.name;
+        cell.appendChild(img);
+        cell.appendChild(taskDiv);
+        cell.appendChild(nameDiv);
+        grid.appendChild(cell);
+      });
+    </script>
+</body>
+</html>
