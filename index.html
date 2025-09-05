@@ -38,7 +38,8 @@
             max-width: 800px;
             width: 100%;
         }
-        .input-group, .controls {
+        .input-group,
+        .controls {
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
@@ -126,7 +127,7 @@
             <button id="start-btn">Ämtchen zuweisen</button>
         </div>
         <div id="settings-section">
-            <h2 style="color:#FFD700;">Mitarbeitende & Anwesenheit</h2>
+            <h2 style="color:#FFD700;">Mitarbeitende &amp; Anwesenheit</h2>
             <div id="employee-settings">
                 <!-- Dynamisch generiert -->
             </div>
@@ -134,12 +135,11 @@
         <div id="result-section" style="display:none;">
             <h2 style="color:#FFD700;">Zuweisungen</h2>
             <div id="assignments"></div>
-            <button id="download-btn">PDF herunterladen</button>
-                        <button id="board-btn">Ansicht anzeigen</button>
+            <!-- Removed PDF button -->
+            <button id="board-btn">Ansicht anzeigen</button>
         </div>
     </div>
-
-    <!-- jsPDF CDN for PDF generation -->
+    <!-- jsPDF remains included but unused for now -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Liste der verfügbaren Ämtchen (ohne FREI, da FREI für überzählige Mitarbeitende genutzt wird)
@@ -153,7 +153,7 @@
             "Getränke auffüllen"
         ];
 
-        // Mitarbeitende mit Standard-Anwesenheit
+        // Mitarbeitende mit Standard-Anwesenheit und Erinnerung an vorherige Zuweisung (previous)
         const employees = [
             { name: "Zeno", schedule: { montag:true, dienstag:true, mittwoch:true, donnerstag:true, freitag:true }, ferien:false, previous:null },
             { name: "Steipi", schedule: { montag:true, dienstag:true, mittwoch:true, donnerstag:true, freitag:true }, ferien:false, previous:null },
@@ -222,17 +222,14 @@
                 };
                 emp.ferien = document.getElementById(`${emp.name}-ferien`).checked;
             });
-
             // Prepare assignments
             const result = [];
             // Copy tasks and shuffle
             const tasksToAssign = [...tasks];
             shuffle(tasksToAssign);
-
             // Random order of employees to assign fairness
             const employeesOrder = employees.slice();
             shuffle(employeesOrder);
-
             employeesOrder.forEach(emp => {
                 let assigned = 'FREI';
                 if (!emp.ferien) {
@@ -256,13 +253,11 @@
                 }
                 result.push({ name: emp.name, task: assigned });
             });
-
             // Update previousAssignments
             result.forEach(item => {
                 previousAssignments[item.name] = item.task;
             });
             localStorage.setItem('previousAssignments', JSON.stringify(previousAssignments));
-
             // Display results
             const assignmentDiv = document.getElementById('assignments');
             assignmentDiv.innerHTML = '';
@@ -275,32 +270,16 @@
                 `;
                 assignmentDiv.appendChild(row);
             });
-
             // Show result section
-            document.getElementById('result-section').style.display = '';
-            // Store result globally for PDF
+            const resultSection = document.getElementById('result-section');
+            resultSection.style.display = '';
+            // Smooth scroll to the result section
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+            // Store result globally and in localStorage for board page
             window.currentAssignments = result;
             window.currentMonth = monthInput;
-                    localStorage.setItem('currentAssignments', JSON.stringify(result));
-        localStorage.setItem('currentMonth', monthInput);
-        }
-
-        function downloadPDF() {
-            if (!window.currentAssignments || !window.currentMonth) {
-                alert('Bitte zuerst die Ämtchen zuweisen.');
-                return;
-            }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFontSize(16);
-            doc.text('Ämtchenzuweisungen - ' + window.currentMonth, 10, 20);
-            doc.setFontSize(12);
-            let y = 30;
-            window.currentAssignments.forEach(item => {
-                doc.text(item.name + ': ' + item.task, 10, y);
-                y += 8;
-            });
-            doc.save('Aemtchen_' + window.currentMonth.replace(/\s+/g, '_') + '.pdf');
+            localStorage.setItem('currentAssignments', JSON.stringify(result));
+            localStorage.setItem('currentMonth', monthInput);
         }
 
         // Event listeners
@@ -308,10 +287,9 @@
             renderEmployeeSettings();
         });
         document.getElementById('start-btn').addEventListener('click', assignTasks);
-        document.getElementById('download-btn').addEventListener('click', downloadPDF);
-            document.getElementById('board-btn').addEventListener('click', () => {
-        window.open('board.html', '_blank');
-    });
+        document.getElementById('board-btn').addEventListener('click', () => {
+            window.open('board.html', '_blank');
+        });
     </script>
 </body>
 </html>
