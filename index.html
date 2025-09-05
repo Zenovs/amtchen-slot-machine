@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ämtchen Slot Machine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        #game-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 420px;
+            width: 100%;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:disabled {
+            background-color: #8BC34A;
+            cursor: not-allowed;
+        }
+        .slot-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .slot {
+            width: 30%;
+            height: 80px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #333;
+            text-align: center;
+            padding: 5px;
+        }
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ämtchen Slot Machine</h1>
+    <p>Fülle deinen Namen aus und versuche dein Glück! Wenn drei gleiche Ämtchen erscheinen, führst du diese Aufgabe im nächsten Monat aus.</p>
+    <div id="game-container">
+        <div class="input-group">
+            <label for="player-name">Dein Name:</label>
+            <input type="text" id="player-name" placeholder="Name eingeben" />
+            <button id="start-btn">Spiel starten</button>
+        </div>
+        <div id="slot-section" style="display:none;">
+            <div class="slot-display">
+                <div class="slot" id="slot1">–</div>
+                <div class="slot" id="slot2">–</div>
+                <div class="slot" id="slot3">–</div>
+            </div>
+            <button id="spin-btn">Drehen</button>
+            <button id="reset-btn" style="display:none; margin-left:10px; background-color:#f44336;">Neustart</button>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        // Liste der verfügbaren Ämtchen
+        const tasks = [
+            "Küche Ordnung",
+            "Recycling Dosen",
+            "Recycling PET",
+            "Karton",
+            "Chef de Frigor",
+            "Pausenraum putzen",
+            "Getränke auffüllen",
+            "FREI"
+        ];
+
+        const nameInput = document.getElementById('player-name');
+        const startBtn = document.getElementById('start-btn');
+        const spinBtn = document.getElementById('spin-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const slot1 = document.getElementById('slot1');
+        const slot2 = document.getElementById('slot2');
+        const slot3 = document.getElementById('slot3');
+        const message = document.getElementById('message');
+        const slotSection = document.getElementById('slot-section');
+
+        let spinning = false;
+        let playerName = '';
+
+        // Wenn das Spiel gestartet wird
+        startBtn.addEventListener('click', () => {
+            playerName = nameInput.value.trim();
+            if (!playerName) {
+                alert('Bitte gib deinen Namen ein, um zu starten.');
+                return;
+            }
+            nameInput.disabled = true;
+            startBtn.disabled = true;
+            slotSection.style.display = '';
+            message.textContent = '';
+        });
+
+        // Random eine Aufgabe auswählen
+        function randomTask() {
+            const index = Math.floor(Math.random() * tasks.length);
+            return tasks[index];
+        }
+
+        // Drehen der Slots
+        spinBtn.addEventListener('click', () => {
+            if (spinning) return;
+            spinning = true;
+            message.textContent = '';
+            resetBtn.style.display = 'none';
+
+            // Animation über 1,5 Sekunden mit schnellen Aufgabenwechseln simulieren
+            const spinDuration = 1500; // ms
+            const intervalTime = 100; // Intervalle zum Aktualisieren der Slots
+            const startTime = Date.now();
+
+            const interval = setInterval(() => {
+                slot1.textContent = randomTask();
+                slot2.textContent = randomTask();
+                slot3.textContent = randomTask();
+                if (Date.now() - startTime >= spinDuration) {
+                    clearInterval(interval);
+                    spinning = false;
+                    finalizeSpin();
+                }
+            }, intervalTime);
+        });
+
+        function finalizeSpin() {
+            // Endgültige Werte festlegen
+            const final1 = randomTask();
+            const final2 = randomTask();
+            const final3 = randomTask();
+            slot1.textContent = final1;
+            slot2.textContent = final2;
+            slot3.textContent = final3;
+
+            // Prüfen auf drei gleiche Ergebnisse
+            if (final1 === final2 && final2 === final3) {
+                if (final1 === 'FREI') {
+                    message.textContent = `${playerName}, du hast FREI! Glück gehabt – keine Aufgabe für dich!`;
+                } else {
+                    message.textContent = `${playerName}, du wirst im nächsten Monat die Aufgabe "${final1}" übernehmen.`;
+                }
+                spinBtn.disabled = true;
+                resetBtn.style.display = '';
+            } else {
+                message.textContent = `${playerName}, leider kein dreifacher Treffer. Versuch es nochmal!`;
+            }
+        }
+
+        // Reset-Funktion, um erneut zu spielen
+        resetBtn.addEventListener('click', () => {
+            spinBtn.disabled = false;
+            slot1.textContent = '–';
+            slot2.textContent = '–';
+            slot3.textContent = '–';
+            message.textContent = '';
+            resetBtn.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
