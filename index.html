@@ -235,8 +235,8 @@
                     // Try to assign a task from tasksToAssign
                     for (let i = 0; i < tasksToAssign.length; i++) {
                         const task = tasksToAssign[i];
-                        // Skip Karton if employee not working on Wednesday
-                        if (task === 'Karton' && !emp.schedule.mittwoch) {
+                        // Skip Karton mit Wendy absprechen if employee not working on Wednesday
+                        if (task === 'Karton mit Wendy absprechen' && !emp.schedule.mittwoch) {
                             continue;
                         }
                         // Skip if same as previous assignment
