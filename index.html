@@ -99,6 +99,32 @@
             font-weight: normal;
             color: #fff;
         }
+        .employee-row select {
+            padding: 5px 10px;
+            border: 2px solid #D4AF37;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .employee-row .schedule-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-right: 10px;
+        }
+        .employee-row .manual-assignment {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            width: 100%;
+        }
+        .manual-assignment label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
         #assignments {
             margin-top: 20px;
         }
@@ -128,6 +154,10 @@
         </div>
         <div id="settings-section">
             <h2 style="color:#FFD700;">Mitarbeitende &amp; Anwesenheit</h2>
+            <p style="color:#ddd; font-size:0.9rem; margin-bottom:15px;">
+                <strong>Tipp:</strong> Wähle für jede Person ein Amt aus dem Dropdown-Menü oder belasse es bei "Zufall" für automatische Zuweisung. 
+                Manuell zugewiesene Ämter werden fest vergeben und nicht mehr an andere Personen verteilt.
+            </p>
             <div id="employee-settings">
                 <!-- Dynamisch generiert -->
             </div>
@@ -184,14 +214,30 @@
             employees.forEach(emp => {
                 const row = document.createElement('div');
                 row.className = 'employee-row';
+                
+                // Build dropdown options
+                let dropdownOptions = '<option value="random">Zufall</option>';
+                tasks.forEach(task => {
+                    dropdownOptions += `<option value="${task}">${task}</option>`;
+                });
+                dropdownOptions += '<option value="FREI">FREI</option>';
+                
                 row.innerHTML = `
                     <span>${emp.name}</span>
-                    <label><input type="checkbox" id="${emp.name}-mon" ${emp.schedule.montag ? 'checked' : ''}> Mo</label>
-                    <label><input type="checkbox" id="${emp.name}-tue" ${emp.schedule.dienstag ? 'checked' : ''}> Di</label>
-                    <label><input type="checkbox" id="${emp.name}-wed" ${emp.schedule.mittwoch ? 'checked' : ''}> Mi</label>
-                    <label><input type="checkbox" id="${emp.name}-thu" ${emp.schedule.donnerstag ? 'checked' : ''}> Do</label>
-                    <label><input type="checkbox" id="${emp.name}-fri" ${emp.schedule.freitag ? 'checked' : ''}> Fr</label>
-                    <label><input type="checkbox" id="${emp.name}-ferien"> Ferien</label>
+                    <div class="schedule-section">
+                        <label><input type="checkbox" id="${emp.name}-mon" ${emp.schedule.montag ? 'checked' : ''}> Mo</label>
+                        <label><input type="checkbox" id="${emp.name}-tue" ${emp.schedule.dienstag ? 'checked' : ''}> Di</label>
+                        <label><input type="checkbox" id="${emp.name}-wed" ${emp.schedule.mittwoch ? 'checked' : ''}> Mi</label>
+                        <label><input type="checkbox" id="${emp.name}-thu" ${emp.schedule.donnerstag ? 'checked' : ''}> Do</label>
+                        <label><input type="checkbox" id="${emp.name}-fri" ${emp.schedule.freitag ? 'checked' : ''}> Fr</label>
+                        <label><input type="checkbox" id="${emp.name}-ferien"> Ferien</label>
+                    </div>
+                    <div class="manual-assignment">
+                        <label for="${emp.name}-task">Amt:</label>
+                        <select id="${emp.name}-task">
+                            ${dropdownOptions}
+                        </select>
+                    </div>
                 `;
                 container.appendChild(row);
             });
@@ -222,26 +268,71 @@
                 };
                 emp.ferien = document.getElementById(`${emp.name}-ferien`).checked;
             });
+            
             // Prepare assignments
             const result = [];
-            // Copy tasks and shuffle
+            const manualAssignments = [];
+            const randomAssignments = [];
+            
+            // Step 1: Collect manual and random assignments
+            employees.forEach(emp => {
+                const selectedTask = document.getElementById(`${emp.name}-task`).value;
+                if (selectedTask !== 'random') {
+                    // Manual assignment
+                    manualAssignments.push({ name: emp.name, task: selectedTask, emp: emp });
+                } else {
+                    // Random assignment
+                    randomAssignments.push({ name: emp.name, emp: emp });
+                }
+            });
+            
+            // Step 2: Process manual assignments first
             const tasksToAssign = [...tasks];
+            manualAssignments.forEach(item => {
+                // Check if manual assignment is valid for this employee
+                let finalTask = item.task;
+                
+                // If employee is on vacation, override with FREI
+                if (item.emp.ferien) {
+                    finalTask = 'FREI';
+                }
+                // If task is "Karton mit Wendy absprechen" but not working on Wednesday, show warning
+                else if (item.task === 'Karton mit Wendy absprechen' && !item.emp.schedule.mittwoch) {
+                    if (confirm(`${item.name} arbeitet nicht am Mittwoch, aber "Karton mit Wendy absprechen" wurde manuell zugewiesen. Trotzdem zuweisen?`)) {
+                        finalTask = item.task;
+                    } else {
+                        finalTask = 'FREI';
+                    }
+                }
+                
+                result.push({ name: item.name, task: finalTask });
+                
+                // Remove task from available tasks if it's not FREI
+                if (finalTask !== 'FREI') {
+                    const index = tasksToAssign.indexOf(finalTask);
+                    if (index > -1) {
+                        tasksToAssign.splice(index, 1);
+                    }
+                }
+            });
+            
+            // Step 3: Shuffle remaining tasks and random assignments for fairness
             shuffle(tasksToAssign);
-            // Random order of employees to assign fairness
-            const employeesOrder = employees.slice();
-            shuffle(employeesOrder);
-            employeesOrder.forEach(emp => {
+            shuffle(randomAssignments);
+            
+            // Step 4: Assign remaining tasks to random assignments
+            randomAssignments.forEach(item => {
                 let assigned = 'FREI';
-                if (!emp.ferien) {
+                if (!item.emp.ferien) {
                     // Try to assign a task from tasksToAssign
                     for (let i = 0; i < tasksToAssign.length; i++) {
                         const task = tasksToAssign[i];
                         // Skip Karton mit Wendy absprechen if employee not working on Wednesday
-                        if (task === 'Karton mit Wendy absprechen' && !emp.schedule.mittwoch) {
+                        if (task === 'Karton mit Wendy absprechen' && !item.emp.schedule.mittwoch) {
                             continue;
                         }
                         // Skip if same as previous assignment
-                        const prev = previousAssignments[emp.name];
+                        const prev = previousAssignments[item.name];
                         if (prev && prev === task) {
                             continue;
                         }
@@ -251,13 +342,15 @@
                         break;
                     }
                 }
-                result.push({ name: emp.name, task: assigned });
+                result.push({ name: item.name, task: assigned });
             });
+            
             // Update previousAssignments
             result.forEach(item => {
                 previousAssignments[item.name] = item.task;
             });
             localStorage.setItem('previousAssignments', JSON.stringify(previousAssignments));
+            
             // Display results
             const assignmentDiv = document.getElementById('assignments');
             assignmentDiv.innerHTML = '';
@@ -270,11 +363,13 @@
                 `;
                 assignmentDiv.appendChild(row);
             });
+            
             // Show result section
             const resultSection = document.getElementById('result-section');
             resultSection.style.display = '';
             // Smooth scroll to the result section
             resultSection.scrollIntoView({ behavior: 'smooth' });
+            
             // Store result globally and in localStorage for board page
             window.currentAssignments = result;
             window.currentMonth = monthInput;
