@@ -12,6 +12,7 @@ Dieses kleine Web‑Spiel simuliert einen Einarmigen Banditen (Slot Machine) fü
 - Pausenraum putzen
 - Getränke auffüllen
 - Kaffeekapseln entsorgen
+- Glas entsorgen
 - FREI (Glück gehabt!)
 
 ## Nutzung
