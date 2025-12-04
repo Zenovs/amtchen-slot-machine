@@ -27,7 +27,7 @@ def main() -> None:
     smtp_user = os.environ.get("SMTP_USER")
     smtp_pass = os.environ.get("SMTP_PASS")
     mail_from = os.environ.get("MAIL_FROM", "ki@schnydaer.ch")
-    mail_to = os.environ.get("MAIL_TO", "dario@schnyder-werbung.ch")
+    mail_to = os.environ.get("MAIL_TO", "daria@schnyder-werbung.ch")
 
     # Validate required environment variables
     if not smtp_host or not smtp_user or not smtp_pass:

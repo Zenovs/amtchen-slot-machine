@@ -11,6 +11,7 @@ Dieses kleine Web‑Spiel simuliert einen Einarmigen Banditen (Slot Machine) fü
 - Chef de Frigor
 - Pausenraum putzen
 - Getränke auffüllen
+- Kaffeekapseln entsorgen
 - FREI (Glück gehabt!)
 
 ## Nutzung
