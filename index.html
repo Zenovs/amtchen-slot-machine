@@ -177,7 +177,7 @@
             "Küche Ordnung",
             "Recycling Dosen",
             "Recycling PET",
-            "Karton mit Wendy absprechen",
+            "Karton",
             "Chef de Frigor",
             "Pausenraum putzen",
             "Getränke auffüllen",
@@ -298,9 +298,9 @@
                 if (item.emp.ferien) {
                     finalTask = 'FREI';
                 }
-                // If task is "Karton mit Wendy absprechen" but not working on Wednesday, show warning
-                else if (item.task === 'Karton mit Wendy absprechen' && !item.emp.schedule.mittwoch) {
-                    if (confirm(`${item.name} arbeitet nicht am Mittwoch, aber "Karton mit Wendy absprechen" wurde manuell zugewiesen. Trotzdem zuweisen?`)) {
+                // If task is "Karton" but not working on Wednesday, show warning
+                else if (item.task === 'Karton' && !item.emp.schedule.mittwoch) {
+                    if (confirm(`${item.name} arbeitet nicht am Mittwoch, aber "Karton" wurde manuell zugewiesen. Trotzdem zuweisen?`)) {
                         finalTask = item.task;
                     } else {
                         finalTask = 'FREI';
@@ -329,8 +329,8 @@
                     // Try to assign a task from tasksToAssign
                     for (let i = 0; i < tasksToAssign.length; i++) {
                         const task = tasksToAssign[i];
-                        // Skip Karton mit Wendy absprechen if employee not working on Wednesday
-                        if (task === 'Karton mit Wendy absprechen' && !item.emp.schedule.mittwoch) {
+                        // Skip Karton if employee not working on Wednesday
+                        if (task === 'Karton' && !item.emp.schedule.mittwoch) {
                             continue;
                         }
                         // Skip if same as previous assignment
