@@ -158,6 +158,17 @@
                 <strong>Tipp:</strong> Wähle für jede Person ein Amt aus dem Dropdown-Menü oder belasse es bei "Zufall" für automatische Zuweisung. 
                 Manuell zugewiesene Ämter werden fest vergeben und nicht mehr an andere Personen verteilt.
             </p>
+            
+            <!-- User Management Section -->
+            <div id="user-management" style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                <h3 style="color:#FFD700; margin-top:0;">👤 Neue Person hinzufügen</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <input type="text" id="new-user-name" placeholder="Name eingeben..." style="flex: 1; min-width: 200px; padding: 10px; border: 2px solid #D4AF37; border-radius: 6px; font-size: 14px;">
+                    <button type="button" id="add-user-btn" style="padding: 10px 20px; font-size: 14px;">➕ Hinzufügen</button>
+                </div>
+                <p id="user-error" style="color: #ff6b6b; margin-top: 10px; display: none;"></p>
+            </div>
+            
             <div id="employee-settings">
                 <!-- Dynamisch generiert -->
             </div>
@@ -193,8 +204,8 @@
         const CHEFKOCH_AMT = "Chefkoch/Köchin";
         const CHEFKOCH_ANZAHL = 2;
 
-        // Mitarbeitende mit Standard-Anwesenheit und Erinnerung an vorherige Zuweisung (previous)
-        const employees = [
+        // Standard-Mitarbeitende (wird nur bei erstmaliger Nutzung verwendet)
+        const defaultEmployees = [
             { name: "Zeno", schedule: { montag:true, dienstag:true, mittwoch:true, donnerstag:true, freitag:true }, ferien:false, previous:null },
             { name: "Stef", schedule: { montag:true, dienstag:true, mittwoch:true, donnerstag:true, freitag:true }, ferien:false, previous:null },
             { name: "Arlinda", schedule: { montag:true, dienstag:true, mittwoch:true, donnerstag:true, freitag:true }, ferien:false, previous:null },
@@ -207,6 +218,77 @@
             { name: "Daniela", schedule: { montag:false, dienstag:true, mittwoch:false, donnerstag:true, freitag:true }, ferien:false, previous:null },
             { name: "Michelle", schedule: { montag:true, dienstag:true, mittwoch:true, donnerstag:true, freitag:true }, ferien:false, previous:null }
         ];
+
+        // Mitarbeitende aus localStorage laden oder Standard verwenden
+        let employees = [];
+        const storedEmployees = localStorage.getItem('employees');
+        if (storedEmployees) {
+            employees = JSON.parse(storedEmployees);
+        } else {
+            employees = JSON.parse(JSON.stringify(defaultEmployees)); // Deep copy
+            localStorage.setItem('employees', JSON.stringify(employees));
+        }
+
+        // Funktion zum Speichern der Mitarbeitenden
+        function saveEmployees() {
+            localStorage.setItem('employees', JSON.stringify(employees));
+        }
+
+        // Funktion zum Hinzufügen eines neuen Users
+        function addUser(name) {
+            const errorEl = document.getElementById('user-error');
+            errorEl.style.display = 'none';
+            
+            // Validierung: Name darf nicht leer sein
+            const trimmedName = name.trim();
+            if (!trimmedName) {
+                errorEl.textContent = '❌ Bitte einen Namen eingeben.';
+                errorEl.style.display = 'block';
+                return false;
+            }
+            
+            // Validierung: Keine Duplikate (case-insensitive)
+            const exists = employees.some(emp => emp.name.toLowerCase() === trimmedName.toLowerCase());
+            if (exists) {
+                errorEl.textContent = `❌ "${trimmedName}" existiert bereits.`;
+                errorEl.style.display = 'block';
+                return false;
+            }
+            
+            // Neuen User hinzufügen
+            const newEmployee = {
+                name: trimmedName,
+                schedule: { montag: true, dienstag: true, mittwoch: true, donnerstag: true, freitag: true },
+                ferien: false,
+                previous: null
+            };
+            employees.push(newEmployee);
+            saveEmployees();
+            renderEmployeeSettings();
+            
+            // Erfolgsmeldung
+            errorEl.textContent = `✅ "${trimmedName}" wurde hinzugefügt!`;
+            errorEl.style.color = '#90EE90';
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+                errorEl.style.color = '#ff6b6b';
+            }, 2000);
+            
+            return true;
+        }
+
+        // Funktion zum Löschen eines Users
+        function deleteUser(name) {
+            if (confirm(`Möchtest du "${name}" wirklich löschen?`)) {
+                employees = employees.filter(emp => emp.name !== name);
+                saveEmployees();
+                // Auch aus previousAssignments entfernen
+                delete previousAssignments[name];
+                localStorage.setItem('previousAssignments', JSON.stringify(previousAssignments));
+                renderEmployeeSettings();
+            }
+        }
 
         // Previous assignments persisted in localStorage to avoid same task next time
         let previousAssignments = {};
@@ -227,7 +309,7 @@
                 // Build dropdown options
                 let dropdownOptions = '<option value="random">Zufall</option>';
                 // Chefkoch/Köchin als erste Option (Prioritätsamt)
-                dropdownOptions += `<option value="${CHEFKOCH_AMT}">${CHEFKOCH_AMT} ⭐</option>`;
+                dropdownOptions += `<option value="${CHEFKOCH_AMT}">👨‍🍳 ${CHEFKOCH_AMT}</option>`;
                 tasks.forEach(task => {
                     dropdownOptions += `<option value="${task}">${task}</option>`;
                 });
@@ -248,9 +330,18 @@
                         <select id="${emp.name}-task">
                             ${dropdownOptions}
                         </select>
+                        <button type="button" class="delete-user-btn" data-name="${emp.name}" style="margin-left: 10px; padding: 5px 10px; font-size: 12px; background: #ff6b6b; border-color: #ff5252; color: white;">🗑️</button>
                     </div>
                 `;
                 container.appendChild(row);
+            });
+            
+            // Event Listener für Delete-Buttons hinzufügen
+            document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const name = e.target.getAttribute('data-name');
+                    deleteUser(name);
+                });
             });
         }
 
@@ -454,6 +545,24 @@
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
             renderEmployeeSettings();
+            
+            // Add User Button
+            document.getElementById('add-user-btn').addEventListener('click', () => {
+                const input = document.getElementById('new-user-name');
+                if (addUser(input.value)) {
+                    input.value = '';
+                }
+            });
+            
+            // Enter-Taste im Eingabefeld
+            document.getElementById('new-user-name').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const input = document.getElementById('new-user-name');
+                    if (addUser(input.value)) {
+                        input.value = '';
+                    }
+                }
+            });
         });
         document.getElementById('start-btn').addEventListener('click', assignTasks);
         document.getElementById('board-btn').addEventListener('click', () => {
