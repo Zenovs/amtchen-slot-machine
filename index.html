@@ -227,7 +227,7 @@
                 // Build dropdown options
                 let dropdownOptions = '<option value="random">Zufall</option>';
                 // Chefkoch/Köchin als erste Option (Prioritätsamt)
-                dropdownOptions += `<option value="${CHEFKOCH_AMT}">${CHEFKOCH_AMT} ⭐</option>`;
+                dropdownOptions += `<option value="${CHEFKOCH_AMT}">👨‍🍳 ${CHEFKOCH_AMT}</option>`;
                 tasks.forEach(task => {
                     dropdownOptions += `<option value="${task}">${task}</option>`;
                 });
