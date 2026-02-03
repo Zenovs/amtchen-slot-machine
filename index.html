@@ -186,11 +186,11 @@
             "Glas entsorgen"
         ];
 
-        // Spezielles Amt mit Priorität: Chefkoch/Köchin
+        // Spezielles Amt mit Priorität: Chefkoch/-köchin
         // - Wird einmal im Monat vergeben
         // - Genau 2 Personen erhalten dieses Amt
         // - Hat Priorität gegenüber anderen Ämtern
-        const CHEFKOCH_AMT = "Chefkoch/Köchin";
+        const CHEFKOCH_AMT = "Chefkoch/-köchin";
         const CHEFKOCH_ANZAHL = 2;
 
         // Mitarbeitende mit Standard-Anwesenheit und Erinnerung an vorherige Zuweisung (previous)
@@ -226,7 +226,7 @@
                 
                 // Build dropdown options
                 let dropdownOptions = '<option value="random">Zufall</option>';
-                // Chefkoch/Köchin als erste Option (Prioritätsamt)
+                // Chefkoch/-köchin als erste Option (Prioritätsamt)
                 dropdownOptions += `<option value="${CHEFKOCH_AMT}">${CHEFKOCH_AMT} ⭐</option>`;
                 tasks.forEach(task => {
                     dropdownOptions += `<option value="${task}">${task}</option>`;
@@ -301,7 +301,7 @@
                 }
             });
             
-            // Step 2: Process Chefkoch/Köchin with PRIORITY (exactly 2 persons)
+            // Step 2: Process Chefkoch/-köchin with PRIORITY (exactly 2 persons)
             const tasksToAssign = [...tasks];
             let chefkochCount = 0;
             
