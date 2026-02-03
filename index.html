@@ -186,6 +186,13 @@
             "Glas entsorgen"
         ];
 
+        // Spezielles Amt mit Priorität: Chefkoch/Köchin
+        // - Wird einmal im Monat vergeben
+        // - Genau 2 Personen erhalten dieses Amt
+        // - Hat Priorität gegenüber anderen Ämtern
+        const CHEFKOCH_AMT = "Chefkoch/Köchin";
+        const CHEFKOCH_ANZAHL = 2;
+
         // Mitarbeitende mit Standard-Anwesenheit und Erinnerung an vorherige Zuweisung (previous)
         const employees = [
             { name: "Zeno", schedule: { montag:true, dienstag:true, mittwoch:true, donnerstag:true, freitag:true }, ferien:false, previous:null },
@@ -219,6 +226,8 @@
                 
                 // Build dropdown options
                 let dropdownOptions = '<option value="random">Zufall</option>';
+                // Chefkoch/Köchin als erste Option (Prioritätsamt)
+                dropdownOptions += `<option value="${CHEFKOCH_AMT}">${CHEFKOCH_AMT} ⭐</option>`;
                 tasks.forEach(task => {
                     dropdownOptions += `<option value="${task}">${task}</option>`;
                 });
@@ -274,13 +283,17 @@
             // Prepare assignments
             const result = [];
             const manualAssignments = [];
+            const manualChefkochAssignments = [];
             const randomAssignments = [];
             
             // Step 1: Collect manual and random assignments
             employees.forEach(emp => {
                 const selectedTask = document.getElementById(`${emp.name}-task`).value;
-                if (selectedTask !== 'random') {
-                    // Manual assignment
+                if (selectedTask === CHEFKOCH_AMT) {
+                    // Manuelle Chefkoch-Zuweisung
+                    manualChefkochAssignments.push({ name: emp.name, task: selectedTask, emp: emp });
+                } else if (selectedTask !== 'random') {
+                    // Andere manuelle Zuweisung
                     manualAssignments.push({ name: emp.name, task: selectedTask, emp: emp });
                 } else {
                     // Random assignment
@@ -288,8 +301,65 @@
                 }
             });
             
-            // Step 2: Process manual assignments first
+            // Step 2: Process Chefkoch/Köchin with PRIORITY (exactly 2 persons)
             const tasksToAssign = [...tasks];
+            let chefkochCount = 0;
+            
+            // 2a: First assign manually selected Chefkoch
+            manualChefkochAssignments.forEach(item => {
+                if (item.emp.ferien) {
+                    // Person is on vacation - cannot be Chefkoch
+                    result.push({ name: item.name, task: 'FREI' });
+                } else if (chefkochCount < CHEFKOCH_ANZAHL) {
+                    result.push({ name: item.name, task: CHEFKOCH_AMT });
+                    chefkochCount++;
+                } else {
+                    // Already have enough Chefkochs, add to random pool
+                    randomAssignments.push({ name: item.name, emp: item.emp });
+                }
+            });
+            
+            // 2b: If we still need more Chefkochs, randomly select from available employees
+            if (chefkochCount < CHEFKOCH_ANZAHL) {
+                const neededChefkochs = CHEFKOCH_ANZAHL - chefkochCount;
+                // Shuffle random assignments to fairly select Chefkochs
+                shuffle(randomAssignments);
+                
+                // Find eligible candidates (not on vacation, didn't have Chefkoch last time)
+                const eligibleForChefkoch = randomAssignments.filter(item => {
+                    if (item.emp.ferien) return false;
+                    // Prefer people who weren't Chefkoch last time
+                    const prev = previousAssignments[item.name];
+                    return prev !== CHEFKOCH_AMT;
+                });
+                
+                // If not enough eligible, also consider those who had it before
+                if (eligibleForChefkoch.length < neededChefkochs) {
+                    const alsoEligible = randomAssignments.filter(item => {
+                        if (item.emp.ferien) return false;
+                        const prev = previousAssignments[item.name];
+                        return prev === CHEFKOCH_AMT && !eligibleForChefkoch.includes(item);
+                    });
+                    eligibleForChefkoch.push(...alsoEligible);
+                }
+                
+                // Assign Chefkoch to needed number of people
+                for (let i = 0; i < neededChefkochs && i < eligibleForChefkoch.length; i++) {
+                    const selected = eligibleForChefkoch[i];
+                    result.push({ name: selected.name, task: CHEFKOCH_AMT });
+                    chefkochCount++;
+                    // Remove from random assignments
+                    const idx = randomAssignments.findIndex(r => r.name === selected.name);
+                    if (idx > -1) randomAssignments.splice(idx, 1);
+                }
+            }
+            
+            // Warning if we couldn't assign exactly 2 Chefkochs
+            if (chefkochCount < CHEFKOCH_ANZAHL) {
+                alert(`Warnung: Nur ${chefkochCount} Person(en) konnten als ${CHEFKOCH_AMT} zugewiesen werden. Es werden ${CHEFKOCH_ANZAHL} benötigt!`);
+            }
+            
+            // Step 3: Process other manual assignments
             manualAssignments.forEach(item => {
                 // Check if manual assignment is valid for this employee
                 let finalTask = item.task;
@@ -318,11 +388,13 @@
                 }
             });
             
-            // Step 3: Shuffle remaining tasks and random assignments for fairness
+            // Step 4: Shuffle remaining tasks and random assignments for fairness
             shuffle(tasksToAssign);
             shuffle(randomAssignments);
             
-            // Step 4: Assign remaining tasks to random assignments
+            // Step 5: Assign remaining tasks to random assignments
+            // If there are more employees than tasks, some get FREI
+            // Chefkoch has priority, so we reduce other tasks if needed
             randomAssignments.forEach(item => {
                 let assigned = 'FREI';
                 if (!item.emp.ferien) {
