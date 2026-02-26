@@ -3,117 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ämtchen Board - Übersichtliche Darstellung der aktuellen Zuweisungen">
     <title>Ämtchen Board</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #fafafa;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 40px 20px;
-            color: #333;
-        }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-        h2 {
-            font-size: 2rem;
-            margin-bottom: 40px;
-            color: #555;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 1000px;
-        }
-        .cell {
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        /* Remove explicit sizing for inline images – icons will handle their own sizing */
-        .cell img {
-            display: none;
-        }
-        .cell .task {
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .cell .name {
-            color: #777;
-        }
-        .footer {
-            margin-top: 40px;
-            font-size: 1rem;
-            color: #888;
-        }
-
-        /* Style for material icons used instead of inline images */
-        .cell .icon {
-            font-family: 'Material Icons';
-            font-size: 60px;
-            color: #555;
-            margin-bottom: 10px;
-            display: block;
-        }
-    </style>
-
-    <!-- Load Google Material Icons font -->
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <h1 id="board-month"></h1>
-    <h2>Ämtchen</h2>
-    <div id="assignment-grid" class="grid"></div>
-    <div class="footer">Schnyder Werbung</div>
-    <script>
-      // Map tasks to Material icon names (Google Material Symbols)
-      const iconMap = {
-          "Küche Ordnung": "kitchen",
-          "Recycling Dosen": "recycling",
-          "Recycling PET": "recycling",
-          "Karton": "inventory_2",
-          "Chef de Frigor": "kitchen",
-          "Pausenraum putzen": "cleaning_services",
-          "Getränke auffüllen": "local_drink",
-          "Kaffeekapseln entsorgen": "recycling",
-          "Glas entsorgen": "wine_bar",
-          "Abfall bereitstellen": "delete",       
-          "Chefkoch/-köchin": "restaurant",
-          "FREI": "sentiment_satisfied"
-      };
-      const assignments = JSON.parse(localStorage.getItem('currentAssignments') || '[]');
-      const month = localStorage.getItem('currentMonth') || '';
-      document.getElementById('board-month').innerText = month;
-      const grid = document.getElementById('assignment-grid');
-      assignments.forEach(item => {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        // Material icon span
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'material-icons icon';
-        iconSpan.textContent = iconMap[item.task] || '';
-        // Task and name elements
-        const taskDiv = document.createElement('div');
-        taskDiv.className = 'task';
-        taskDiv.innerText = item.task;
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'name';
-        nameDiv.innerText = item.name;
-        // Append to cell
-        cell.appendChild(iconSpan);
-        cell.appendChild(taskDiv);
-        cell.appendChild(nameDiv);
-        grid.appendChild(cell);
-      });
-    </script>
+<body class="board-page">
+    <div class="container">
+        <!-- Header -->
+        <header class="board-header">
+            <h1 id="board-month">Monat</h1>
+            <h2>Ämtchen Übersicht</h2>
+        </header>
+
+        <!-- Board Grid -->
+        <div id="assignment-grid" class="board-grid">
+            <!-- Wird dynamisch generiert -->
+        </div>
+
+        <!-- Footer -->
+        <footer class="board-footer">
+            <p>Schnyder Werbung &copy; 2026</p>
+            <p class="text-muted">Erstellt mit der Ämtchen Slot Machine</p>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
 </body>
 </html>
