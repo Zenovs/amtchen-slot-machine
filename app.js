@@ -24,7 +24,6 @@
  * - icon: Material Icon Name
  */
 const TASKS = [
-    { id: 'chefkoch', name: 'Chefkoch / Köchin', count: 2, icon: 'restaurant' },
     { id: 'kueche', name: 'Küche Ordnung und Pausenraum', count: 1, icon: 'kitchen' },
     { id: 'recycling', name: 'Recycling (Dosen, PET, Glas, Kapseln)', count: 2, icon: 'recycling' },
     { id: 'karton', name: 'Karton', count: 1, icon: 'inventory_2' },
@@ -414,8 +413,7 @@ class UIController {
     buildTaskOptions() {
         let options = '<option value="random">🎲 Zufall</option>';
         TASKS.forEach(task => {
-            const emoji = task.id === 'chefkoch' ? ' ⭐' : '';
-            options += `<option value="${task.id}">${task.name}${emoji}</option>`;
+            options += `<option value="${task.id}">${task.name}</option>`;
         });
         return options;
     }
