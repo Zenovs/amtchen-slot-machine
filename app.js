@@ -805,11 +805,20 @@ class BoardController {
             return;
         }
 
-        grid.innerHTML = this.assignments.map(item => `
+        // Gruppiere nach Aufgaben für bessere Übersicht
+        const grouped = new Map();
+        this.assignments.forEach(item => {
+            if (!grouped.has(item.task)) {
+                grouped.set(item.task, { ...item, names: [] });
+            }
+            grouped.get(item.task).names.push(item.name);
+        });
+
+        grid.innerHTML = Array.from(grouped.values()).map(item => `
             <div class="board-card">
                 <span class="material-icons icon">${item.icon}</span>
                 <div class="task">${item.task}</div>
-                <div class="name">${item.name}</div>
+                <div class="name">${item.names.join(', ')}</div>
             </div>
         `).join('');
     }
