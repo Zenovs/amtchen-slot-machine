@@ -490,7 +490,7 @@ class UIController {
                     <div class="assignment-task">${item.task}</div>
                     <div class="assignment-name">${item.names.join(', ')}</div>
                 </div>
-                ${item.names.length > 1 ? `<span class="assignment-count">${item.names.length}x</span>` : ''}
+                
             </div>
         `).join('');
 
