@@ -44,10 +44,10 @@ const DEFAULT_EMPLOYEES = [
     { name: 'Chris', schedule: { mo: true, di: true, mi: true, do: true, fr: true } },
     { name: 'Chrigi', schedule: { mo: true, di: true, mi: true, do: true, fr: false } },
     { name: 'Elena', schedule: { mo: true, di: true, mi: true, do: true, fr: true } },
-    { name: 'Meli', schedule: { mo: true, di: true, mi: true, do: true, fr: true } },
     { name: 'Barbara', schedule: { mo: true, di: true, mi: true, do: true, fr: true } },
     { name: 'Daniela', schedule: { mo: false, di: true, mi: false, do: true, fr: true } },
-    { name: 'Michelle', schedule: { mo: true, di: true, mi: true, do: true, fr: true } }
+    { name: 'Michelle', schedule: { mo: true, di: true, mi: true, do: true, fr: true } },
+    { name: 'Jessica', schedule: { mo: true, di: true, mi: true, do: true, fr: true } }
 ];
 
 // LocalStorage Keys
